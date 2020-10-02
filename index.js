@@ -9,13 +9,22 @@ const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
 // time.
 const TOKEN_PATH = '..\\token.json';
 
+
 // Load client secrets from a local file.
 fs.readFile('..\\credentials.json', (err, content) => {
   if (err) return console.log('Error loading client secret file:', err);
   // Authorize a client with credentials, then call the Gmail API.
-  authorize(JSON.parse(content), listLabels);
-
+  //authorize(JSON.parse(content), listLabels);
+  const json = authorize(JSON.parse(content), getRecentEmail);
+  console.log(json);
+  
+  
+ // message_raw = response.data.payload.parts[0].body.data;
+ // text = atob(message_raw);
+ // console.log(text);
 });
+
+
 
 
 //const messages = await listMessages(oAuth2Client, 'label:inbox subject:reminder');
@@ -30,12 +39,12 @@ function authorize(credentials, callback) {
   const {client_secret, client_id, redirect_uris} = credentials.web;
   const oAuth2Client = new google.auth.OAuth2(
       client_id, client_secret, redirect_uris[0]);
-
+    
   // Check if we have previously stored a token.
   fs.readFile(TOKEN_PATH, (err, token) => {
     if (err) return getNewToken(oAuth2Client, callback);
     oAuth2Client.setCredentials(JSON.parse(token));
-    callback(oAuth2Client);
+    return callback(oAuth2Client);
   });
 }
 
@@ -65,7 +74,7 @@ function getNewToken(oAuth2Client, callback) {
         if (err) return console.error(err);
         console.log('Token stored to', TOKEN_PATH);
       });
-      callback(oAuth2Client);
+      return callback(oAuth2Client);
     });
   });
 }
@@ -93,6 +102,30 @@ function listLabels(auth) {
   });
 }
 
+function getRecentEmail(auth) {
+  const gmail = google.gmail({version: 'v1', auth});
+  // Only get the recent email - 'maxResults' parameter
+  gmail.users.messages.list({auth: auth, userId: 'me', maxResults: 1,}, function(err, response) {
+      if (err) {
+          console.log('The API returned an error: ' + err);
+          return;
+      }
+    
+    // Get the message id which we will need to retreive tha actual message next.
+    var message_id = response['data']['messages'][0]['id'];
+    // Retreive the actual message using the message id
+    gmail.users.messages.get({auth: auth, userId: 'me', 'id': message_id}, function(err, response) {
+        if (err) {
+            console.log('The API returned an error: ' + err);
+            return;
+        }
+       
+       console.log(response['data']);
+       return response;
+    });
+  });
+}
+
 function listMessages(auth, query) {
   return new Promise((resolve, reject) => {
     const gmail = google.gmail({version: 'v1', auth});
@@ -115,3 +148,5 @@ function listMessages(auth, query) {
     );
   });
 }
+// const messages = await listMessages(oAuth2Client, 'label:inbox subject:reminder');
+// console.log(messages);
