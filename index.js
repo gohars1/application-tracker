@@ -1,6 +1,10 @@
 const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
+const request = require('request');
+const util = require('util');
+const readFile = util.promisify(fs.readFile);
+const jsonToken = require('..\\token.json')
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
@@ -8,6 +12,7 @@ const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
 // created automatically when the authorization flow completes for the first
 // time.
 const TOKEN_PATH = '..\\token.json';
+
 
 
 // Load client secrets from a local file.
@@ -78,8 +83,10 @@ function getNewToken(oAuth2Client, callback) {
         console.log('Token stored to', TOKEN_PATH);
       });
       callback(oAuth2Client);
+      
     });
   });
+
 }
 
 /**
@@ -132,6 +139,7 @@ function getRecentEmail(auth) {
 function listMessages(auth, query) {
   return new Promise((resolve, reject) => {
     const gmail = google.gmail({version: 'v1', auth});
+    
     gmail.users.messages.list(
       {
         userId: 'me',
@@ -150,12 +158,46 @@ function listMessages(auth, query) {
       }
     );
   });
+
 }
 
-async function messagelister(oAuth2Client){
+function getToken(){
+  return readFile("..\\token.json");
+}
+
+  async function messagelister(oAuth2Client){
   const messages = await listMessages(oAuth2Client, 'label:inbox subject:reminder');  
   
-  console.log(messages);
+
+  for (message of messages){
+    message_id = message.id;
+  //  console.log(message_id);
+  
+    const text = JSON.parse(await readFile('..\\token.json', 'utf8')).access_token;
+    
+
+    const options = 
+    {
+      url: 'https://gmail.googleapis.com/gmail/v1/users/gohas685@gmail.com/messages/' + message_id,
+      headers: {
+        'Authorization' : 'Bearer ' + text ,
+        'Accept' : 'application/json'
+      }
+    };
+    console.log(options);
+    function callback(error, response, body) {
+      if (!error && response.statusCode == 200) {
+        const info = JSON.parse(body);
+        console.log("test");
+      }
+      else{
+        console.log(error);
+      }
+    }
+    request(options, callback);
+    
+  }
+
 }
 
 // const messages = await listMessages(oAuth2Client, 'label:inbox subject:reminder');
