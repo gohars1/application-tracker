@@ -33,7 +33,6 @@ fs.readFile('..\\credentials.json', (err, content) => {
 
 
 
-//const messages = await listMessages(oAuth2Client, 'label:inbox subject:reminder');
 
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
@@ -94,23 +93,7 @@ function getNewToken(oAuth2Client, callback) {
  *
  * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
  */
-function listLabels(auth) {
-  const gmail = google.gmail({version: 'v1', auth});
-  gmail.users.labels.list({
-    userId: 'me',
-  }, (err, res) => {
-    if (err) return console.log('The API returned an error: ' + err);
-    const labels = res.data.labels;
-    if (labels.length) {
-      console.log('Labels:');
-      labels.forEach((label) => {
-        console.log(`- ${label.name} : ${label.id}`);
-      });
-    } else {
-      console.log('No labels found.');
-    }
-  });
-}
+
 
 function getRecentEmail(auth) {
   const gmail = google.gmail({version: 'v1', auth});
@@ -122,7 +105,7 @@ function getRecentEmail(auth) {
       }
     
     // Get the message id which we will need to retreive tha actual message next.
-    var message_id = response['data']['messages'][0]['id'];
+    
     // Retreive the actual message using the message id
     gmail.users.messages.get({auth: auth, userId: 'me', 'id': message_id}, function(err, response) {
         if (err) {
@@ -165,40 +148,39 @@ function getToken(){
   return readFile("..\\token.json");
 }
 
-  async function messagelister(oAuth2Client){
-  const messages = await listMessages(oAuth2Client, 'label:inbox subject:reminder');  
-  
+function listMessage(auth, message) {
+  const gmail = google.gmail({version: 'v1', auth});
+  gmail.users.messages.get({
+    "userId": "gohas6875@gmail.com",
+    "id": message
+  })
+  .then(function(response) {
+          // Handle the results here (response.result has the parsed body).
+          'use strict';
+         // let buff = Buffer.from(response.data.payload.body.data, 'base64');
+         // let str = buff
+         for (const part in response.data.payload.parts){
+          console.log("Response", response.data);
+          let buff = Buffer.from(response.data.payload.parts[part].body.data, 'base64');
+          console.log(buff.toString());
+         }
 
+        },
+        function(err) { console.error("Execute error", err); });
+}
+
+  async function messagelister(oAuth2Client){
+  const text = JSON.parse(await readFile('..\\token.json', 'utf8')).access_token;
+  const messages = await listMessages(oAuth2Client, 'label:inbox subject:reminder');  
+  const gmail = google.gmail({version: 'v1', oAuth2Client});
+  
+  //console.log(oAuth2Client);
   for (message of messages){
     message_id = message.id;
-  //  console.log(message_id);
-  
-    const text = JSON.parse(await readFile('..\\token.json', 'utf8')).access_token;
-    
+    listMessage(oAuth2Client, message_id);
 
-    const options = 
-    {
-      url: 'https://gmail.googleapis.com/gmail/v1/users/gohas685@gmail.com/messages/' + message_id,
-      headers: {
-        'Authorization' : 'Bearer ' + text ,
-        'Accept' : 'application/json'
-      }
-    };
-    console.log(options);
-    function callback(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        const info = JSON.parse(body);
-        console.log("test");
-      }
-      else{
-        console.log(error);
-      }
-    }
-    request(options, callback);
     
   }
 
 }
 
-// const messages = await listMessages(oAuth2Client, 'label:inbox subject:reminder');
-// console.log(messages);
