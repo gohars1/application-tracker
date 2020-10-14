@@ -126,11 +126,14 @@ function listMessage(auth, message) {
           // Handle the results here (response.result has the parsed body).
         
           'use strict';
-        let buff = Buffer.from(response.data.payload.parts[0].body.data, 'base64');
-         // let str = buff
-         console.log("Response" , buff.toString());
-        
-
+        let buff = (Buffer.from(response.data.payload.parts[0].body.data, 'base64')).toString();
+        for (i in response.data.payload.headers){
+          if (response.data.payload.headers[i].name == "From"){
+            sender = response.data.payload.headers[i].value
+          }
+        }
+        const respArray = [buff, sender]
+         console.log("Response" , respArray);
         },
         function(err) { console.error("Execute error", err); });
 }
