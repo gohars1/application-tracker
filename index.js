@@ -127,9 +127,11 @@ function listMessage(auth, message) {
         
           'use strict';
         let buff = (Buffer.from(response.data.payload.parts[0].body.data, 'base64')).toString();
-        for (i in response.data.payload.headers){
+        var sender = undefined;
+        for (const i in response.data.payload.headers){
           if (response.data.payload.headers[i].name == "From"){
-            sender = response.data.payload.headers[i].value
+            sender = response.data.payload.headers[i].value;
+            
           }
         }
         const respArray = [buff, sender]
