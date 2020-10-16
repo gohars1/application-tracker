@@ -22,13 +22,13 @@ module.exports = {
 }
 
 
-// Load client secrets from a local file.
-fs.readFile('..\\credentials.json', (err, content) => {
-  if (err) return console.log('Error loading client secret file:', err);
-  // Authorize a client with credentials, then call the Gmail API.
-  //authorize(JSON.parse(content), listLabels);
-  const json = authorize(JSON.parse(content), messagelister);
-});
+// // Load client secrets from a local file.
+// fs.readFile('..\\credentials.json', (err, content) => {
+//   if (err) return console.log('Error loading client secret file:', err);
+//   // Authorize a client with credentials, then call the Gmail API.
+//   //authorize(JSON.parse(content), listLabels);
+//   const json = authorize(JSON.parse(content), messagelister);
+// });
 
 
 
@@ -142,7 +142,7 @@ function listMessage(auth, message) {
 
   async function messagelister(oAuth2Client){
   const text = JSON.parse(await readFile('..\\token.json', 'utf8')).access_token;
-  const messages = await listMessages(oAuth2Client, 'label:inbox subject:reminder');  
+  const messages = await listMessages(oAuth2Client, 'label:inbox subject:(Thank application)');  
   const gmail = google.gmail({version: 'v1', oAuth2Client});
 
   //console.log(oAuth2Client);

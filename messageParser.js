@@ -14,9 +14,13 @@ async function saveMessages(){
     catch (err){
 
     }
-    
+}
 
-}
-function parseMessages(messages){
+async function parseMessages(){
+
+    const messages = await saveMessages();
+    console.log(messages);
     
 }
+
+parseMessages();
